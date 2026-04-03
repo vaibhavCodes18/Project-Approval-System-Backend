@@ -1,4 +1,21 @@
 package com.bit.ProjectApprovalSystem.repository;
 
-public interface ProjectMemberRepository {
+import com.bit.ProjectApprovalSystem.entity.ProjectMember;
+import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ProjectMemberRepository extends MongoRepository<ProjectMember, ObjectId> {
+
+    List<ProjectMember> findByProjectId(ObjectId projectId);
+
+    List<ProjectMember> findByStudentId(ObjectId studentId);
+
+    Optional<ProjectMember> findByProjectIdAndStudentId(ObjectId projectId, ObjectId studentId);
+
+    boolean existsByProjectIdAndStudentId(ObjectId projectId, ObjectId studentId);
 }
