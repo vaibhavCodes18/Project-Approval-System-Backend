@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -20,22 +21,24 @@ public class Project {
 
     @Id
     private ObjectId id;
-    
+
     private String title;
-    
+
     private String description;
-    
-    private ObjectId leaderId;
-    
-    private ObjectId guideId;
-    
+
+    @DBRef
+    private User leader;
+
+    @DBRef
+    private User guide;
+
     private ProjectStatus status;
-    
+
     private int teamSize; // 1-4
-    
+
     @CreatedDate
     private LocalDateTime createdAt;
-    
+
     @LastModifiedDate
     private LocalDateTime updatedAt;
 

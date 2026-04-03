@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -20,17 +21,17 @@ public class Approval {
 
     @Id
     private ObjectId id;
-    
-    private ObjectId projectId;
-    
-    private ObjectId actionBy; // The user ID performing the action
-    
+
+    private Project projectId;
+
+    private User actionBy; // The user ID performing the action
+
     private ApprovalRole role;
-    
+
     private ApprovalStatus status;
-    
+
     private String remark;
-    
+
     @CreatedDate
     private LocalDateTime actionAt;
 
