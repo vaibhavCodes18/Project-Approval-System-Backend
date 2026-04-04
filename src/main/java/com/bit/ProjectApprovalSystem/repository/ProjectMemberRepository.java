@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+
 public interface ProjectMemberRepository extends MongoRepository<ProjectMember, ObjectId> {
 
     List<ProjectMember> findByProjectId(ObjectId projectId);
