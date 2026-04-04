@@ -9,9 +9,6 @@ import java.util.List;
 
 @Repository
 public interface ApprovalRepository extends MongoRepository<Approval, ObjectId> {
-
-
     List<Approval> findByProjectIdOrderByActionAtAsc(ObjectId projectId);
-
     List<Approval> findByProjectId(ObjectId projectId);
 }
