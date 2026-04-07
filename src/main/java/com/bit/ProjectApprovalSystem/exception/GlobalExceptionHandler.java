@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
-@RestControllerAdvice(basePackages = "com.bit.projectApprovalSystem.controller")
+@RestControllerAdvice(basePackages = "com.bit.ProjectApprovalSystem.controller")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)

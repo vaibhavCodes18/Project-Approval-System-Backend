@@ -1,5 +1,6 @@
 package com.bit.ProjectApprovalSystem.controller;
 
+import com.bit.ProjectApprovalSystem.dto.request.CreateUserRequest;
 import com.bit.ProjectApprovalSystem.dto.request.RegisterRequest;
 import com.bit.ProjectApprovalSystem.dto.response.UserResponse;
 import com.bit.ProjectApprovalSystem.response.ApiResponse;
@@ -22,7 +23,14 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> addStudent(@RequestBody RegisterRequest registerRequest){
         UserResponse response = authService.saveStudent(registerRequest);
-        ApiResponse<?> apiResponse = new ApiResponse<>(201, "done", response);
+        ApiResponse<?> apiResponse = new ApiResponse<>(201, "A student was successfully created!", response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+    }
+
+    @PostMapping("/hod/register")
+    public ResponseEntity<?> loginUser(@RequestBody CreateUserRequest createUserRequest){
+        UserResponse response = authService.saveHod(createUserRequest);
+        ApiResponse<?> apiResponse = new ApiResponse<>(201, "A hod was successfully created!", response);
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 }
