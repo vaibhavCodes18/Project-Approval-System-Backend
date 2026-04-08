@@ -2,9 +2,12 @@ package com.bit.ProjectApprovalSystem.service.impl;
 
 import com.bit.ProjectApprovalSystem.dto.request.CreateUserRequest;
 import com.bit.ProjectApprovalSystem.dto.request.LoginRequest;
+import com.bit.ProjectApprovalSystem.dto.request.LogoutRequest;
 import com.bit.ProjectApprovalSystem.dto.request.RegisterRequest;
 import com.bit.ProjectApprovalSystem.dto.response.AuthResponse;
+import com.bit.ProjectApprovalSystem.dto.response.TokenResfreshResponse;
 import com.bit.ProjectApprovalSystem.dto.response.UserResponse;
+import com.bit.ProjectApprovalSystem.entity.RefreshToken;
 import com.bit.ProjectApprovalSystem.entity.User;
 import com.bit.ProjectApprovalSystem.enums.UserRole;
 import com.bit.ProjectApprovalSystem.enums.UserStatus;
@@ -108,7 +111,7 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtService.generateAccessToken(user.getId().toString(), user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
-        com.bit.ProjectApprovalSystem.entity.RefreshToken rt = new com.bit.ProjectApprovalSystem.entity.RefreshToken();
+        RefreshToken rt = new RefreshToken();
         rt.setToken(refreshToken);
         rt.setUserId(user.getId());
         rt.setRevoked(false);
@@ -122,21 +125,69 @@ public class AuthServiceImpl implements AuthService {
         userResponse.setStatus(user.getUserStatus().name());
 
         return AuthResponse.builder()
-                .token(accessToken)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .user(userResponse)
                 .build();
     }
 
     @Override
-    public void logout(com.bit.ProjectApprovalSystem.dto.request.LogoutRequest logoutRequest) {
-        if (logoutRequest == null || logoutRequest.getRefreshToken() == null) {
+    public void logout(String refreshToken) {
+        if (refreshToken == null ) {
             throw new BadCredentialsException("Refresh token is required for logout");
         }
 
-        com.bit.ProjectApprovalSystem.entity.RefreshToken rfToken = refreshTokenRepository.findByToken(logoutRequest.getRefreshToken())
+        RefreshToken rfToken = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid refresh token"));
         
         rfToken.setRevoked(true);
         refreshTokenRepository.save(rfToken);
+    }
+
+    @Override
+    public TokenResfreshResponse refreshToken(String refreshToken) {
+        try {
+            RefreshToken dbToken = refreshTokenRepository.findByToken(refreshToken)
+                    .orElseThrow(() -> new BadCredentialsException("Refresh token not found in database"));
+
+            if (dbToken.isRevoked()) {
+                throw new BadCredentialsException("Refresh token has been revoked.");
+            }
+
+            String email = jwtService.extractEmail(refreshToken);
+
+            if (email != null) {
+                User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+                // Extra security check: does the DB token actually match the user inside the payload?
+                if (!dbToken.getUserId().equals(user.getId())) {
+                    dbToken.setRevoked(true);
+                    refreshTokenRepository.save(dbToken);
+                    throw new BadCredentialsException("Token compromised");
+                }
+
+                if (jwtService.isRefreshTokenValid(refreshToken, user.getEmail())) {
+                    String newAccessToken = jwtService.generateAccessToken(user.getId().toString(), user.getEmail(), user.getRole().name());
+                    String newRefreshTokenString = jwtService.generateRefreshToken(user.getEmail());
+
+                    dbToken.setRevoked(true);
+                    refreshTokenRepository.save(dbToken);
+
+                    RefreshToken newRefreshToken = new RefreshToken();
+                    newRefreshToken.setToken(newRefreshTokenString);
+                    newRefreshToken.setUserId(user.getId());
+                    refreshTokenRepository.save(newRefreshToken);
+
+                    return new TokenResfreshResponse(newAccessToken, newRefreshTokenString);
+                } else {
+                    dbToken.setRevoked(true);
+                    refreshTokenRepository.save(dbToken);
+                }
+            }
+        } catch (Exception e) {
+            throw new BadCredentialsException("Invalid or expired refresh token: " + e.getMessage());
+        }
+
+        throw new BadCredentialsException("Invalid refresh token");
     }
 }

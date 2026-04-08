@@ -4,6 +4,7 @@ import com.bit.ProjectApprovalSystem.dto.request.CreateUserRequest;
 import com.bit.ProjectApprovalSystem.dto.request.LoginRequest;
 import com.bit.ProjectApprovalSystem.dto.request.RegisterRequest;
 import com.bit.ProjectApprovalSystem.dto.response.AuthResponse;
+import com.bit.ProjectApprovalSystem.dto.response.TokenResfreshResponse;
 import com.bit.ProjectApprovalSystem.dto.response.UserResponse;
 
 public interface AuthService {
@@ -13,5 +14,7 @@ public interface AuthService {
 
     AuthResponse login(LoginRequest loginRequest);
 
-    void logout(com.bit.ProjectApprovalSystem.dto.request.LogoutRequest logoutRequest);
+    void logout(String refreshToken);
+
+    TokenResfreshResponse refreshToken(String refreshtoken);
 }
