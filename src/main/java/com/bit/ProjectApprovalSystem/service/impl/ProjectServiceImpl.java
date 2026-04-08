@@ -1,0 +1,179 @@
+package com.bit.ProjectApprovalSystem.service.impl;
+
+import com.bit.ProjectApprovalSystem.dto.request.ProjectCreateRequest;
+import com.bit.ProjectApprovalSystem.dto.request.ProjectUpdateRequest;
+import com.bit.ProjectApprovalSystem.dto.response.ProjectResponse;
+import com.bit.ProjectApprovalSystem.dto.response.UserResponse;
+import com.bit.ProjectApprovalSystem.entity.Project;
+import com.bit.ProjectApprovalSystem.entity.ProjectMember;
+import com.bit.ProjectApprovalSystem.entity.User;
+import com.bit.ProjectApprovalSystem.enums.ProjectMemberRole;
+import com.bit.ProjectApprovalSystem.enums.ProjectStatus;
+import com.bit.ProjectApprovalSystem.exception.BadCredentialsException;
+import com.bit.ProjectApprovalSystem.exception.ResourceNotFoundException;
+import com.bit.ProjectApprovalSystem.repository.ProjectMemberRepository;
+import com.bit.ProjectApprovalSystem.repository.ProjectRepository;
+import com.bit.ProjectApprovalSystem.repository.UserRepository;
+import com.bit.ProjectApprovalSystem.service.interfaces.ProjectService;
+import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class ProjectServiceImpl implements ProjectService {
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private ProjectMemberRepository projectMemberRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+        return userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    @Override
+    public ProjectResponse createProject(ProjectCreateRequest request) {
+        User leader = getAuthenticatedUser();
+
+        Project project = new Project();
+        project.setTitle(request.getTitle());
+        project.setDescription(request.getDescription());
+        project.setLeaderId(leader.getId());
+        project.setStatus(ProjectStatus.DRAFT);
+        project.setTeamSize(1);
+
+        if (request.getGuideId() != null && !request.getGuideId().isEmpty()) {
+            project.setGuideId(new ObjectId(request.getGuideId()));
+        }
+
+        Project savedProject = projectRepository.save(project);
+
+        ProjectMember member = new ProjectMember();
+        member.setProjectId(savedProject.getId());
+        member.setStudentId(leader.getId());
+        member.setRole(ProjectMemberRole.LEADER);
+        member.setJoinedAt(LocalDateTime.now());
+        projectMemberRepository.save(member);
+
+        return mapToResponse(savedProject, leader);
+    }
+
+    @Override
+    public List<ProjectResponse> getMyProjects() {
+        User user = getAuthenticatedUser();
+        List<ProjectMember> memberships = projectMemberRepository.findByStudentId(user.getId());
+
+        List<ProjectResponse> responses = new ArrayList<>();
+        for (ProjectMember member : memberships) {
+            Project project = projectRepository.findById(member.getProjectId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+            responses.add(mapToResponse(project, null));
+        }
+        return responses;
+    }
+
+    @Override
+    public ProjectResponse getProjectById(String id) {
+        Project project = projectRepository.findById(new ObjectId(id))
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        return mapToResponse(project, null);
+    }
+
+    @Override
+    public ProjectResponse updateProject(String id, ProjectUpdateRequest request) {
+        User user = getAuthenticatedUser();
+        Project project = projectRepository.findById(new ObjectId(id))
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+
+        if (!project.getLeaderId().equals(user.getId())) {
+            throw new BadCredentialsException("Only the project leader can update the project");
+        }
+
+        if (project.getStatus() != ProjectStatus.DRAFT) {
+            throw new BadCredentialsException("Project can only be updated before submission");
+        }
+
+        project.setTitle(request.getTitle());
+        project.setDescription(request.getDescription());
+        if (request.getGuideId() != null && !request.getGuideId().isEmpty()) {
+            project.setGuideId(new ObjectId(request.getGuideId()));
+        }
+
+        Project updatedProject = projectRepository.save(project);
+        return mapToResponse(updatedProject, user);
+    }
+
+    @Override
+    public void deleteProject(String id) {
+        User user = getAuthenticatedUser();
+        Project project = projectRepository.findById(new ObjectId(id))
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+
+        if (!project.getLeaderId().equals(user.getId())) {
+            throw new BadCredentialsException("Only the project leader can delete the project");
+        }
+
+        projectRepository.delete(project);
+
+        // Also clean up project members
+        List<ProjectMember> members = projectMemberRepository.findByProjectId(project.getId());
+        projectMemberRepository.deleteAll(members);
+    }
+
+    private ProjectResponse mapToResponse(Project project, User leader) {
+        if (leader == null) {
+            leader = userRepository.findById(project.getLeaderId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Leader not found"));
+        }
+
+        UserResponse leaderResponse = null;
+        if (leader != null) {
+            leaderResponse = UserResponse.builder()
+                    .id(leader.getId().toString())
+                    .name(leader.getName())
+                    .email(leader.getEmail())
+                    .role(leader.getRole().name())
+                    .status(leader.getUserStatus() != null ? leader.getUserStatus().name() : null)
+                    .build();
+        }
+
+        UserResponse guideResponse = null;
+        if (project.getGuideId() != null) {
+            User guide = userRepository.findById(project.getGuideId()).orElse(null);
+            if (guide != null) {
+                guideResponse = UserResponse.builder()
+                        .id(guide.getId().toString())
+                        .name(guide.getName())
+                        .email(guide.getEmail())
+                        .role(guide.getRole().name())
+                        .status(guide.getUserStatus() != null ? guide.getUserStatus().name() : null)
+                        .build();
+            }
+        }
+
+        return ProjectResponse.builder()
+                .id(project.getId().toString())
+                .title(project.getTitle())
+                .description(project.getDescription())
+                .leader(leaderResponse)
+                .guide(guideResponse)
+                .status(project.getStatus() != null ? project.getStatus().name() : null)
+                .teamSize(project.getTeamSize())
+                .createdAt(project.getCreatedAt())
+                .updatedAt(project.getUpdatedAt())
+                .build();
+    }
+}

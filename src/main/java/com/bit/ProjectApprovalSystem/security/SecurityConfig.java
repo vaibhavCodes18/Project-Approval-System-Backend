@@ -41,6 +41,8 @@ public class SecurityConfig {
                                         "/api/v1/auth/login",
                                         "/api/v1/auth/refresh",
                                         "/").permitAll()
+                                .requestMatchers("/api/v1/users/**").hasRole("HOD")
+                                .requestMatchers("/api/v1/projects/**").hasRole("STUDENT")
                                 .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
