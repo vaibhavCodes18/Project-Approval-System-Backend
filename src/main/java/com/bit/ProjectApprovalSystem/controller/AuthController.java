@@ -58,6 +58,13 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<?> userProfile(){
+        UserResponse userResponse = authService.userProfile();
+        ApiResponse<?> apiResponse = new ApiResponse<>(200, "User successfully fetched!", userResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser(@CookieValue(value = REFRESH_COOKIE_NAME, required = false) String refreshToken,
                                         HttpServletResponse response){
