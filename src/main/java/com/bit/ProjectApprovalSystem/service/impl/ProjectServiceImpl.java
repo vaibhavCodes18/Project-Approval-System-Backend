@@ -40,6 +40,7 @@ public class ProjectServiceImpl implements ProjectService {
     private User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = authentication.getName();
+        System.out.println(userEmail);
         return userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
@@ -155,6 +156,8 @@ public class ProjectServiceImpl implements ProjectService {
         List<ProjectMember> members = projectMemberRepository.findByProjectId(project.getId());
         projectMemberRepository.deleteAll(members);
     }
+
+
 
     private ProjectResponse mapToResponse(Project project, User leader) {
         if (leader == null) {
