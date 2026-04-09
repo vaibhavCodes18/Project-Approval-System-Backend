@@ -3,11 +3,8 @@ package com.bit.ProjectApprovalSystem.repository;
 import com.bit.ProjectApprovalSystem.entity.ProjectMember;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
-
 
 public interface ProjectMemberRepository extends MongoRepository<ProjectMember, ObjectId> {
 

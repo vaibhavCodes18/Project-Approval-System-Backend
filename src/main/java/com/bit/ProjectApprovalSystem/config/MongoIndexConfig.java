@@ -27,5 +27,12 @@ public class MongoIndexConfig {
         } catch (Exception e) {
             System.out.println("Could not clear indexes from 'project_members': " + e.getMessage());
         }
+
+        try {
+            mongoTemplate.getCollection("approvals").dropIndexes();
+            System.out.println("Successfully cleared all stale indexes from 'approvals' collection!");
+        } catch (Exception e) {
+            System.out.println("Could not clear indexes from 'approvals': " + e.getMessage());
+        }
     }
 }

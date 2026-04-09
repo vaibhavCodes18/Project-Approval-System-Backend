@@ -2,7 +2,6 @@ package com.bit.ProjectApprovalSystem.service.impl;
 
 import com.bit.ProjectApprovalSystem.dto.request.CreateUserRequest;
 import com.bit.ProjectApprovalSystem.dto.request.LoginRequest;
-import com.bit.ProjectApprovalSystem.dto.request.LogoutRequest;
 import com.bit.ProjectApprovalSystem.dto.request.RegisterRequest;
 import com.bit.ProjectApprovalSystem.dto.response.AuthResponse;
 import com.bit.ProjectApprovalSystem.dto.response.TokenResfreshResponse;
@@ -18,7 +17,6 @@ import com.bit.ProjectApprovalSystem.repository.RefreshTokenRepository;
 import com.bit.ProjectApprovalSystem.repository.UserRepository;
 import com.bit.ProjectApprovalSystem.security.JwtService;
 import com.bit.ProjectApprovalSystem.service.interfaces.AuthService;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,8 +24,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -57,7 +53,8 @@ public class AuthServiceImpl implements AuthService {
 
         User savedUser = userRepository.save(user);
 
-        UserResponse response = new UserResponse();;
+        UserResponse response = new UserResponse();
+        ;
 
         response.setId(savedUser.getId().toString());
         response.setName(savedUser.getName());
@@ -75,7 +72,8 @@ public class AuthServiceImpl implements AuthService {
             throw new DuplicateResourceException(
                     "A user with email '" + registerRequest.getEmail() + "' already exists");
         }
-        if (userRepository.existsByRole(UserRole.valueOf(registerRequest.getRole())) && ("HOD".equals(registerRequest.getRole()))) {
+        if (userRepository.existsByRole(UserRole.valueOf(registerRequest.getRole()))
+                && ("HOD".equals(registerRequest.getRole()))) {
             throw new DuplicateResourceException("An hod already exists");
         }
 
@@ -88,7 +86,8 @@ public class AuthServiceImpl implements AuthService {
 
         User savedUser = userRepository.save(user);
 
-        UserResponse response = new UserResponse();;
+        UserResponse response = new UserResponse();
+        ;
 
         response.setId(savedUser.getId().toString());
         response.setName(savedUser.getName());
@@ -102,15 +101,18 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest loginRequest) {
 
-        User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Users with this email is invalid."));
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Users with this email is invalid."));
 
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
-        if(!authentication.isAuthenticated()){
+        if (!authentication.isAuthenticated()) {
             throw new BadCredentialsException("Users credentials are invalid.");
         }
 
-        String accessToken = jwtService.generateAccessToken(user.getId().toString(), user.getEmail(), user.getRole().name());
+        String accessToken = jwtService.generateAccessToken(user.getId().toString(), user.getEmail(),
+                user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
         RefreshToken rt = new RefreshToken();
@@ -118,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
         rt.setUserId(user.getId());
         rt.setRevoked(false);
         refreshTokenRepository.save(rt);
-        
+
         UserResponse userResponse = new UserResponse();
         userResponse.setId(user.getId().toString());
         userResponse.setName(user.getName());
@@ -135,13 +137,13 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout(String refreshToken) {
-        if (refreshToken == null ) {
+        if (refreshToken == null) {
             throw new BadCredentialsException("Refresh token is required for logout");
         }
 
         RefreshToken rfToken = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid refresh token"));
-        
+
         rfToken.setRevoked(true);
         refreshTokenRepository.save(rfToken);
     }
@@ -159,9 +161,11 @@ public class AuthServiceImpl implements AuthService {
             String email = jwtService.extractEmail(refreshToken);
 
             if (email != null) {
-                User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                User user = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-                // Extra security check: does the DB token actually match the user inside the payload?
+                // Extra security check: does the DB token actually match the user inside the
+                // payload?
                 if (!dbToken.getUserId().equals(user.getId())) {
                     dbToken.setRevoked(true);
                     refreshTokenRepository.save(dbToken);
@@ -169,7 +173,8 @@ public class AuthServiceImpl implements AuthService {
                 }
 
                 if (jwtService.isRefreshTokenValid(refreshToken, user.getEmail())) {
-                    String newAccessToken = jwtService.generateAccessToken(user.getId().toString(), user.getEmail(), user.getRole().name());
+                    String newAccessToken = jwtService.generateAccessToken(user.getId().toString(), user.getEmail(),
+                            user.getRole().name());
                     String newRefreshTokenString = jwtService.generateRefreshToken(user.getEmail());
 
                     dbToken.setRevoked(true);
@@ -199,7 +204,8 @@ public class AuthServiceImpl implements AuthService {
 
         String userEmail = authentication.getName();
 
-        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new ResourceNotFoundException("User not found with this id."));
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with this id."));
 
         return UserResponse.builder()
                 .id(user.getId().toString())

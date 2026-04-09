@@ -2,7 +2,6 @@ package com.bit.ProjectApprovalSystem.controller;
 
 import com.bit.ProjectApprovalSystem.dto.request.CreateUserRequest;
 import com.bit.ProjectApprovalSystem.dto.request.LoginRequest;
-import com.bit.ProjectApprovalSystem.dto.request.LogoutRequest;
 import com.bit.ProjectApprovalSystem.dto.request.RegisterRequest;
 import com.bit.ProjectApprovalSystem.dto.response.AuthResponse;
 import com.bit.ProjectApprovalSystem.dto.response.TokenResfreshResponse;
@@ -35,21 +34,21 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> addStudent(@RequestBody RegisterRequest registerRequest){
+    public ResponseEntity<?> addStudent(@RequestBody RegisterRequest registerRequest) {
         UserResponse response = authService.saveStudent(registerRequest);
         ApiResponse<?> apiResponse = new ApiResponse<>(201, "A student was successfully created!", response);
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
     @PostMapping("/hod/register")
-    public ResponseEntity<?> saveHodGuide(@RequestBody CreateUserRequest createUserRequest){
+    public ResponseEntity<?> saveHodGuide(@RequestBody CreateUserRequest createUserRequest) {
         UserResponse response = authService.saveHod(createUserRequest);
         ApiResponse<?> apiResponse = new ApiResponse<>(201, "A hod was successfully created!", response);
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest, HttpServletResponse response){
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         AuthResponse authResponse = authService.login(loginRequest);
 
         addRefreshCookie(response, authResponse.getRefreshToken(), REFRESH_COOKIE_MAX_AGE);
@@ -59,7 +58,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> userProfile(){
+    public ResponseEntity<?> userProfile() {
         UserResponse userResponse = authService.userProfile();
         ApiResponse<?> apiResponse = new ApiResponse<>(200, "User successfully fetched!", userResponse);
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
@@ -67,7 +66,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser(@CookieValue(value = REFRESH_COOKIE_NAME, required = false) String refreshToken,
-                                        HttpServletResponse response){
+            HttpServletResponse response) {
 
         if (refreshToken != null && !refreshToken.trim().isEmpty()) {
             authService.logout(refreshToken);
@@ -80,9 +79,12 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> tokenRefresh(@CookieValue(value = REFRESH_COOKIE_NAME, required = false) String refreshToken, HttpServletResponse response){
+    public ResponseEntity<?> tokenRefresh(
+            @CookieValue(value = REFRESH_COOKIE_NAME, required = false) String refreshToken,
+            HttpServletResponse response) {
         if (refreshToken == null || refreshToken.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(400, "Refresh Token is missing in cookies", null));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(400, "Refresh Token is missing in cookies", null));
         }
 
         TokenResfreshResponse responseDto = authService.refreshToken(refreshToken);

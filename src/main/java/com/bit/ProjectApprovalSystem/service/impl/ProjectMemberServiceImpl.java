@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
+    @Transactional
     public void addProjectMember(String id, AddMemberRequest request) {
         User user = getAuthenticatedUser();
         Project project = projectRepository.findById(new ObjectId(id))
@@ -100,6 +102,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
+    @Transactional
     public void removeProjectMember(String id, String studentId) {
         User user = getAuthenticatedUser();
         Project project = projectRepository.findById(new ObjectId(id))
