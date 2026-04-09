@@ -47,6 +47,13 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PutMapping("/{id}/submit")
+    public ResponseEntity<?> submitProject(@PathVariable("id") String id) {
+        ProjectResponse response = projectService.submitProject(id);
+        ApiResponse<?> apiResponse = new ApiResponse<>(200, "Project successfully submitted!", response);
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProject(@PathVariable("id") String id) {
         projectService.deleteProject(id);

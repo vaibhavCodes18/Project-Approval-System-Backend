@@ -117,6 +117,29 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public ProjectResponse submitProject(String id) {
+        User user = getAuthenticatedUser();
+        Project project = projectRepository.findById(new ObjectId(id))
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+
+        if (!project.getLeaderId().equals(user.getId())) {
+            throw new BadCredentialsException("Only the project leader can submit the project");
+        }
+
+        if (project.getStatus() != ProjectStatus.DRAFT) {
+            throw new BadCredentialsException("Project must be in DRAFT status to be submitted");
+        }
+
+        if (project.getGuideId() == null) {
+            throw new BadCredentialsException("Project must have a guide assigned before submission");
+        }
+
+        project.setStatus(ProjectStatus.SUBMITTED);
+        Project updatedProject = projectRepository.save(project);
+        return mapToResponse(updatedProject, user);
+    }
+
+    @Override
     public void deleteProject(String id) {
         User user = getAuthenticatedUser();
         Project project = projectRepository.findById(new ObjectId(id))
