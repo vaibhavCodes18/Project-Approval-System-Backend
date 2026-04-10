@@ -36,13 +36,27 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth ->
                         auth
-                                .requestMatchers("/api/v1/auth/register",
-                                        "/api/v1/auth/hod/register",
-                                        "/api/v1/auth/login",
-                                        "/api/v1/auth/refresh",
-                                        "/").permitAll()
+                                // Public Endpoints
+                                .requestMatchers("/api/v1/auth/**", "/").permitAll()
+
+                                // HOD Exclusives
                                 .requestMatchers("/api/v1/users/**").hasRole("HOD")
+                                .requestMatchers("/api/v1/hod/**").hasRole("HOD")
+                                .requestMatchers("/api/v1/dashboard/hod").hasRole("HOD")
+
+                                // Guide Exclusives
+                                .requestMatchers("/api/v1/guide/**").hasRole("GUIDE")
+                                .requestMatchers("/api/v1/dashboard/guide").hasRole("GUIDE")
+
+                                // Student Dashboard
+                                .requestMatchers("/api/v1/dashboard/student").hasRole("STUDENT")
+
+                                // Projects Shared Access (Everyone can Read)
+                                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/projects/**").hasAnyRole("STUDENT", "GUIDE", "HOD")
+
+                                // Projects Write Access (Only Students mutate projects)
                                 .requestMatchers("/api/v1/projects/**").hasRole("STUDENT")
+
                                 .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
