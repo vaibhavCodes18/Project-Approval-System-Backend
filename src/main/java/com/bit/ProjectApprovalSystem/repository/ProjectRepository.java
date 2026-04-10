@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface ProjectRepository extends MongoRepository<Project, ObjectId> {
     List<Project> findByGuideId(ObjectId guideId);
+    List<Project> findByStatus(com.bit.ProjectApprovalSystem.enums.ProjectStatus status);
 }
