@@ -3,7 +3,10 @@ package com.bit.ProjectApprovalSystem.service.impl;
 import com.bit.ProjectApprovalSystem.dto.request.ProjectCreateRequest;
 import com.bit.ProjectApprovalSystem.dto.request.ProjectUpdateRequest;
 import com.bit.ProjectApprovalSystem.dto.response.ProjectResponse;
+import com.bit.ProjectApprovalSystem.dto.response.ApprovalHistoryResponse;
+import com.bit.ProjectApprovalSystem.dto.response.ApprovalResponse;
 import com.bit.ProjectApprovalSystem.dto.response.UserResponse;
+import com.bit.ProjectApprovalSystem.entity.Approval;
 import com.bit.ProjectApprovalSystem.entity.Project;
 import com.bit.ProjectApprovalSystem.entity.ProjectMember;
 import com.bit.ProjectApprovalSystem.entity.User;
@@ -11,6 +14,7 @@ import com.bit.ProjectApprovalSystem.enums.ProjectMemberRole;
 import com.bit.ProjectApprovalSystem.enums.ProjectStatus;
 import com.bit.ProjectApprovalSystem.exception.BadCredentialsException;
 import com.bit.ProjectApprovalSystem.exception.ResourceNotFoundException;
+import com.bit.ProjectApprovalSystem.repository.ApprovalRepository;
 import com.bit.ProjectApprovalSystem.repository.ProjectMemberRepository;
 import com.bit.ProjectApprovalSystem.repository.ProjectRepository;
 import com.bit.ProjectApprovalSystem.repository.UserRepository;
@@ -37,6 +41,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ApprovalRepository approvalRepository;
 
     private User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -158,6 +165,33 @@ public class ProjectServiceImpl implements ProjectService {
         // Also clean up project members
         List<ProjectMember> members = projectMemberRepository.findByProjectId(project.getId());
         projectMemberRepository.deleteAll(members);
+    }
+
+    @Override
+    public ApprovalHistoryResponse getProjectApprovals(String id) {
+        Project project = projectRepository.findById(new ObjectId(id))
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+
+        List<Approval> approvals = approvalRepository.findByProjectIdOrderByActionAtAsc(project.getId());
+
+        List<ApprovalResponse> approvalResponses = new ArrayList<>();
+        for (Approval approval : approvals) {
+            ApprovalResponse resp = ApprovalResponse.builder()
+                    .id(approval.getId().toString())
+                    .projectId(approval.getProjectId().toString())
+                    .actionBy(approval.getActionBy().toString())
+                    .role(approval.getRole() != null ? approval.getRole().name() : null)
+                    .status(approval.getStatus() != null ? approval.getStatus().name() : null)
+                    .remarks(approval.getRemark())
+                    .actionAt(approval.getActionAt())
+                    .build();
+            approvalResponses.add(resp);
+        }
+
+        return ApprovalHistoryResponse.builder()
+                .projectId(id)
+                .approvals(approvalResponses)
+                .build();
     }
 
 

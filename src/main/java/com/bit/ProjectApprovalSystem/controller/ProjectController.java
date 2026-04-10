@@ -3,6 +3,7 @@ package com.bit.ProjectApprovalSystem.controller;
 import com.bit.ProjectApprovalSystem.dto.request.ProjectCreateRequest;
 import com.bit.ProjectApprovalSystem.dto.request.ProjectUpdateRequest;
 import com.bit.ProjectApprovalSystem.dto.response.ProjectResponse;
+import com.bit.ProjectApprovalSystem.dto.response.ApprovalHistoryResponse;
 import com.bit.ProjectApprovalSystem.response.ApiResponse;
 import com.bit.ProjectApprovalSystem.service.interfaces.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,13 @@ public class ProjectController {
     public ResponseEntity<?> deleteProject(@PathVariable("id") String id) {
         projectService.deleteProject(id);
         ApiResponse<?> apiResponse = new ApiResponse<>(200, "Project successfully deleted!", null);
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @GetMapping("/{id}/approvals")
+    public ResponseEntity<?> getProjectApprovals(@PathVariable("id") String id) {
+        ApprovalHistoryResponse response = projectService.getProjectApprovals(id);
+        ApiResponse<?> apiResponse = new ApiResponse<>(200, "Approval history successfully fetched!", response);
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 }

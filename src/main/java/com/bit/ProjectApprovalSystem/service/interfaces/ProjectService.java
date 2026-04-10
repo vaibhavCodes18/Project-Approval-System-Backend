@@ -3,6 +3,7 @@ package com.bit.ProjectApprovalSystem.service.interfaces;
 import com.bit.ProjectApprovalSystem.dto.request.ProjectCreateRequest;
 import com.bit.ProjectApprovalSystem.dto.request.ProjectUpdateRequest;
 import com.bit.ProjectApprovalSystem.dto.response.ProjectResponse;
+import com.bit.ProjectApprovalSystem.dto.response.ApprovalHistoryResponse;
 
 import java.util.List;
 
@@ -19,4 +20,6 @@ public interface ProjectService {
     ProjectResponse submitProject(String id);
 
     void deleteProject(String id);
+
+    ApprovalHistoryResponse getProjectApprovals(String id);
 }
