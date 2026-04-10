@@ -2,6 +2,7 @@ package com.bit.ProjectApprovalSystem.service.impl;
 
 import com.bit.ProjectApprovalSystem.dto.request.ProjectCreateRequest;
 import com.bit.ProjectApprovalSystem.dto.request.ProjectUpdateRequest;
+import com.bit.ProjectApprovalSystem.dto.request.ProjectFilterRequest;
 import com.bit.ProjectApprovalSystem.dto.response.ProjectResponse;
 import com.bit.ProjectApprovalSystem.dto.response.ApprovalHistoryResponse;
 import com.bit.ProjectApprovalSystem.dto.response.ApprovalResponse;
@@ -79,6 +80,49 @@ public class ProjectServiceImpl implements ProjectService {
         projectMemberRepository.save(member);
 
         return mapToResponse(savedProject, leader);
+    }
+
+    @Override
+    public com.bit.ProjectApprovalSystem.dto.response.ProjectListResponse getProjects(ProjectFilterRequest request) {
+        List<Project> projects;
+
+        ProjectStatus status = (request != null && request.getStatus() != null && !request.getStatus().isEmpty()) 
+                ? ProjectStatus.valueOf(request.getStatus().toUpperCase()) : null;
+        ObjectId guideId = (request != null && request.getGuideId() != null && !request.getGuideId().isEmpty()) 
+                ? new ObjectId(request.getGuideId()) : null;
+
+        List<ObjectId> projectIds = null;
+        if (request != null && request.getStudentId() != null && !request.getStudentId().isEmpty()) {
+            List<ProjectMember> memberships = projectMemberRepository.findByStudentId(new ObjectId(request.getStudentId()));
+            if (memberships.isEmpty()) {
+                return new com.bit.ProjectApprovalSystem.dto.response.ProjectListResponse(new ArrayList<>());
+            }
+            projectIds = memberships.stream().map(ProjectMember::getProjectId).collect(java.util.stream.Collectors.toList());
+        }
+
+        if (status != null && guideId != null && projectIds != null) {
+            projects = projectRepository.findByStatusAndGuideIdAndIdIn(status, guideId, projectIds);
+        } else if (status != null && guideId != null) {
+            projects = projectRepository.findByStatusAndGuideId(status, guideId);
+        } else if (status != null && projectIds != null) {
+            projects = projectRepository.findByStatusAndIdIn(status, projectIds);
+        } else if (guideId != null && projectIds != null) {
+            projects = projectRepository.findByGuideIdAndIdIn(guideId, projectIds);
+        } else if (status != null) {
+            projects = projectRepository.findByStatus(status);
+        } else if (guideId != null) {
+            projects = projectRepository.findByGuideId(guideId);
+        } else if (projectIds != null) {
+            projects = projectRepository.findByIdIn(projectIds);
+        } else {
+            projects = projectRepository.findAll();
+        }
+
+        List<ProjectResponse> responses = projects.stream()
+                .map(project -> mapToResponse(project, null))
+                .collect(java.util.stream.Collectors.toList());
+                
+        return new com.bit.ProjectApprovalSystem.dto.response.ProjectListResponse(responses);
     }
 
     @Override
