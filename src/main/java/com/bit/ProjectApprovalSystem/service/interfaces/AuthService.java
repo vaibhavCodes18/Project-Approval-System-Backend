@@ -10,7 +10,7 @@ import com.bit.ProjectApprovalSystem.dto.response.UserResponse;
 public interface AuthService {
     UserResponse saveStudent(RegisterRequest registerRequest);
 
-    UserResponse saveHod(CreateUserRequest createUserRequest);
+
 
     AuthResponse login(LoginRequest loginRequest);
 

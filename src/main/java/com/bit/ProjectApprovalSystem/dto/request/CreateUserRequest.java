@@ -15,5 +15,4 @@ public class CreateUserRequest {
 
     private String password;
 
-    private String role; // GUIDE or HOD
 }

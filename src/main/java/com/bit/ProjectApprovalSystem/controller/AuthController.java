@@ -40,12 +40,6 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @PostMapping("/hod/register")
-    public ResponseEntity<?> saveHodGuide(@RequestBody CreateUserRequest createUserRequest) {
-        UserResponse response = authService.saveHod(createUserRequest);
-        ApiResponse<?> apiResponse = new ApiResponse<>(201, "A hod was successfully created!", response);
-        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
-    }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {

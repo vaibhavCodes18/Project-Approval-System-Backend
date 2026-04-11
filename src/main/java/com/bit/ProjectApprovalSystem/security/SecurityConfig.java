@@ -37,7 +37,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth
                                 // Public Endpoints
-                                .requestMatchers("/api/v1/auth/**", "/").permitAll()
+                                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
+                                .requestMatchers("/", "/error").permitAll() // Add /error to permitAll for proper exception handling
+
+                                // Authenticated endpoints in Auth Controller
+                                .requestMatchers("/api/v1/auth/me", "/api/v1/auth/logout").authenticated()
 
                                 // HOD Exclusives
                                 .requestMatchers("/api/v1/users/**").hasRole("HOD")
@@ -51,10 +55,10 @@ public class SecurityConfig {
                                 // Student Dashboard
                                 .requestMatchers("/api/v1/dashboard/student").hasRole("STUDENT")
 
-                                // Projects Shared Access (Everyone can Read)
+                                // Projects Shared Access (Everyone can Read projects, members and approval history)
                                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/projects/**").hasAnyRole("STUDENT", "GUIDE", "HOD")
 
-                                // Projects Write Access (Only Students mutate projects)
+                                // Projects Write Access (Only Students mutate projects e.g., create, update, submit, members)
                                 .requestMatchers("/api/v1/projects/**").hasRole("STUDENT")
 
                                 .anyRequest().authenticated())
