@@ -6,8 +6,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 
-
 public interface ApprovalRepository extends MongoRepository<Approval, ObjectId> {
     List<Approval> findByProjectIdOrderByActionAtAsc(ObjectId projectId);
+
     List<Approval> findByProjectId(ObjectId projectId);
 }
