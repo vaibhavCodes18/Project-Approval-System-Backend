@@ -5,22 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
+public class GuideWithProjectsResponse {
     private String id;
-
     private String name;
-
     private String email;
-
     private String department;
-
-    private String enrollmentNo;
-
-    private String role;
-
-    private String status;
+    private List<ProjectResponse> assignedProjects;
 }

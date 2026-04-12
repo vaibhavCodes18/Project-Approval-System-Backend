@@ -129,6 +129,32 @@ public class GuideServiceImpl implements GuideService {
         return mapToResponse(updatedProject, null);
     }
 
+    @Override
+    public List<com.bit.ProjectApprovalSystem.dto.response.GuideWithProjectsResponse> getAllGuidesWithProjects() {
+        List<User> guides = userRepository.findByRole(com.bit.ProjectApprovalSystem.enums.UserRole.GUIDE);
+        List<com.bit.ProjectApprovalSystem.dto.response.GuideWithProjectsResponse> overallResponses = new ArrayList<>();
+
+        for (User guide : guides) {
+            List<Project> assignedProjects = projectRepository.findByGuideId(guide.getId());
+            List<ProjectResponse> projectResponses = new ArrayList<>();
+            for (Project project : assignedProjects) {
+                projectResponses.add(mapToResponse(project, null));
+            }
+            
+            com.bit.ProjectApprovalSystem.dto.response.GuideWithProjectsResponse response = 
+                com.bit.ProjectApprovalSystem.dto.response.GuideWithProjectsResponse.builder()
+                    .id(guide.getId().toString())
+                    .name(guide.getName())
+                    .email(guide.getEmail())
+                    .department(guide.getDepartment())
+                    .assignedProjects(projectResponses)
+                    .build();
+                    
+            overallResponses.add(response);
+        }
+        return overallResponses;
+    }
+
     private ProjectResponse mapToResponse(Project project, User leader) {
         if (leader == null) {
             leader = userRepository.findById(project.getLeaderId())

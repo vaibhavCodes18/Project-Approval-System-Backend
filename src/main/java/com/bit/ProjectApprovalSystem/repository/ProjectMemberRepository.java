@@ -15,4 +15,6 @@ public interface ProjectMemberRepository extends MongoRepository<ProjectMember, 
     Optional<ProjectMember> findByProjectIdAndStudentId(ObjectId projectId, ObjectId studentId);
 
     boolean existsByProjectIdAndStudentId(ObjectId projectId, ObjectId studentId);
+
+    long countByProjectId(ObjectId projectId);
 }

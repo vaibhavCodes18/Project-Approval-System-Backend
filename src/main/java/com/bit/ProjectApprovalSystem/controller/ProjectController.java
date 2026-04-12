@@ -29,23 +29,6 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @GetMapping
-    public ResponseEntity<?> getProjects(
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String guideId,
-            @RequestParam(required = false) String studentId) {
-
-        ProjectFilterRequest request = ProjectFilterRequest.builder()
-                .status(status)
-                .guideId(guideId)
-                .studentId(studentId)
-                .build();
-
-        com.bit.ProjectApprovalSystem.dto.response.ProjectListResponse response = projectService.getProjects(request);
-        ApiResponse<?> apiResponse = new ApiResponse<>(200, "Projects successfully fetched!", response);
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
-    }
-
     @GetMapping("/my")
     public ResponseEntity<?> getMyProjects() {
         List<ProjectResponse> responses = projectService.getMyProjects();

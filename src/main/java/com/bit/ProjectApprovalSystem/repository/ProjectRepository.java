@@ -14,4 +14,5 @@ public interface ProjectRepository extends MongoRepository<Project, ObjectId> {
     List<Project> findByStatusAndIdIn(com.bit.ProjectApprovalSystem.enums.ProjectStatus status, List<ObjectId> ids);
     List<Project> findByGuideIdAndIdIn(ObjectId guideId, List<ObjectId> ids);
     List<Project> findByStatusAndGuideIdAndIdIn(com.bit.ProjectApprovalSystem.enums.ProjectStatus status, ObjectId guideId, List<ObjectId> ids);
+    List<Project> findByLeaderId(ObjectId leaderId);
 }

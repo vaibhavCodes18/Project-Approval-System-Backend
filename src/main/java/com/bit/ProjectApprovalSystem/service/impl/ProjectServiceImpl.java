@@ -59,6 +59,17 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectResponse createProject(ProjectCreateRequest request) {
         User leader = getAuthenticatedUser();
 
+        // A student can only have one active project.
+        // "Active" means NOT in a rejected terminal state (GUIDE_REJECTED or HOD_REJECTED).
+        List<Project> existing = projectRepository.findByLeaderId(leader.getId());
+        boolean hasActiveProject = existing.stream()
+                .anyMatch(p -> p.getStatus() != ProjectStatus.GUIDE_REJECTED
+                            && p.getStatus() != ProjectStatus.HOD_REJECTED);
+        if (hasActiveProject) {
+            throw new BadCredentialsException(
+                "You already have an active project. You can only create a new one after your current project is rejected.");
+        }
+
         Project project = new Project();
         project.setTitle(request.getTitle());
         project.setDescription(request.getDescription());
@@ -86,18 +97,22 @@ public class ProjectServiceImpl implements ProjectService {
     public com.bit.ProjectApprovalSystem.dto.response.ProjectListResponse getProjects(ProjectFilterRequest request) {
         List<Project> projects;
 
-        ProjectStatus status = (request != null && request.getStatus() != null && !request.getStatus().isEmpty()) 
-                ? ProjectStatus.valueOf(request.getStatus().toUpperCase()) : null;
-        ObjectId guideId = (request != null && request.getGuideId() != null && !request.getGuideId().isEmpty()) 
-                ? new ObjectId(request.getGuideId()) : null;
+        ProjectStatus status = (request != null && request.getStatus() != null && !request.getStatus().isEmpty())
+                ? ProjectStatus.valueOf(request.getStatus().toUpperCase())
+                : null;
+        ObjectId guideId = (request != null && request.getGuideId() != null && !request.getGuideId().isEmpty())
+                ? new ObjectId(request.getGuideId())
+                : null;
 
         List<ObjectId> projectIds = null;
         if (request != null && request.getStudentId() != null && !request.getStudentId().isEmpty()) {
-            List<ProjectMember> memberships = projectMemberRepository.findByStudentId(new ObjectId(request.getStudentId()));
+            List<ProjectMember> memberships = projectMemberRepository
+                    .findByStudentId(new ObjectId(request.getStudentId()));
             if (memberships.isEmpty()) {
                 return new com.bit.ProjectApprovalSystem.dto.response.ProjectListResponse(new ArrayList<>());
             }
-            projectIds = memberships.stream().map(ProjectMember::getProjectId).collect(java.util.stream.Collectors.toList());
+            projectIds = memberships.stream().map(ProjectMember::getProjectId)
+                    .collect(java.util.stream.Collectors.toList());
         }
 
         if (status != null && guideId != null && projectIds != null) {
@@ -121,7 +136,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<ProjectResponse> responses = projects.stream()
                 .map(project -> mapToResponse(project, null))
                 .collect(java.util.stream.Collectors.toList());
-                
+
         return new com.bit.ProjectApprovalSystem.dto.response.ProjectListResponse(responses);
     }
 
@@ -204,11 +219,10 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BadCredentialsException("Only the project leader can delete the project");
         }
 
+        // Cascade-delete all related records
+        projectMemberRepository.deleteAll(projectMemberRepository.findByProjectId(project.getId()));
+        approvalRepository.deleteAll(approvalRepository.findByProjectId(project.getId()));
         projectRepository.delete(project);
-
-        // Also clean up project members
-        List<ProjectMember> members = projectMemberRepository.findByProjectId(project.getId());
-        projectMemberRepository.deleteAll(members);
     }
 
     @Override
@@ -238,8 +252,6 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
     }
 
-
-
     private ProjectResponse mapToResponse(Project project, User leader) {
         if (leader == null) {
             leader = userRepository.findById(project.getLeaderId())
@@ -253,6 +265,8 @@ public class ProjectServiceImpl implements ProjectService {
                     .name(leader.getName())
                     .email(leader.getEmail())
                     .role(leader.getRole().name())
+                    .enrollmentNo(leader.getEnrollmentNo())
+                    .department(leader.getDepartment())
                     .status(leader.getUserStatus() != null ? leader.getUserStatus().name() : null)
                     .build();
         }
@@ -266,6 +280,7 @@ public class ProjectServiceImpl implements ProjectService {
                         .name(guide.getName())
                         .email(guide.getEmail())
                         .role(guide.getRole().name())
+                        .department(guide.getDepartment())
                         .status(guide.getUserStatus() != null ? guide.getUserStatus().name() : null)
                         .build();
             }

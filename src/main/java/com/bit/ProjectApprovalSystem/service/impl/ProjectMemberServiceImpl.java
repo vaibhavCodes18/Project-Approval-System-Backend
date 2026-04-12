@@ -83,6 +83,12 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             throw new BadCredentialsException("Members can only be added before submission");
         }
 
+        // Enforce maximum team size of 4 (including leader)
+        long currentMemberCount = projectMemberRepository.countByProjectId(project.getId());
+        if (currentMemberCount >= 4) {
+            throw new BadCredentialsException("Team is full. A project can have at most 4 members (including leader).");
+        }
+
         User studentToAdd = userRepository.findById(new ObjectId(request.getStudentId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Student to add not found"));
         

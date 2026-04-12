@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -33,12 +34,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .cors(org.springframework.security.config.Customizer.withDefaults())
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth ->
                         auth
                                 // Public Endpoints
-                                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
+                                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/users/hod").permitAll()
                                 .requestMatchers("/", "/error").permitAll() // Add /error to permitAll for proper exception handling
 
                                 // Authenticated endpoints in Auth Controller
@@ -50,6 +51,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/v1/dashboard/hod").hasRole("HOD")
 
                                 // Guide Exclusives
+                                .requestMatchers("/api/v1/guide/projects/all-with-projects").authenticated()
                                 .requestMatchers("/api/v1/guide/**").hasRole("GUIDE")
                                 .requestMatchers("/api/v1/dashboard/guide").hasRole("GUIDE")
 

@@ -26,6 +26,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
+    @PostMapping("/hod")
+    public ResponseEntity<?> saveHod(@RequestBody CreateUserRequest createUserRequest){
+        UserResponse response = userService.saveHod(createUserRequest);
+        ApiResponse<?> apiResponse = new ApiResponse<>(201, "A hod was successfully created!", response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+    }
+
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
         List<UserResponse> responses = userService.getAllUsers();

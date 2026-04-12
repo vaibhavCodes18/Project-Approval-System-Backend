@@ -2,6 +2,7 @@ package com.bit.ProjectApprovalSystem.entity;
 
 import com.bit.ProjectApprovalSystem.enums.UserRole;
 import com.bit.ProjectApprovalSystem.enums.UserStatus;
+import com.mongodb.lang.Nullable;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -25,6 +26,9 @@ public class User {
     @Indexed(unique = true)
     private String email;
     private String password;
+    private String department;
+    @Nullable
+    private String enrollmentNo;
     private UserRole role;
     private UserStatus userStatus;
     @CreatedDate

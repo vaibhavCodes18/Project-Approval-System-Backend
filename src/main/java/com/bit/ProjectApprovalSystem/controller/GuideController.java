@@ -51,4 +51,11 @@ public class GuideController {
         ApiResponse<?> apiResponse = new ApiResponse<>(200, "Project successfully rejected by Guide!", response);
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
+
+    @GetMapping("/all-with-projects")
+    public ResponseEntity<?> getAllGuidesWithProjects() {
+        List<com.bit.ProjectApprovalSystem.dto.response.GuideWithProjectsResponse> responses = guideService.getAllGuidesWithProjects();
+        ApiResponse<?> apiResponse = new ApiResponse<>(200, "All guides with assigned projects successfully fetched!", responses);
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
 }

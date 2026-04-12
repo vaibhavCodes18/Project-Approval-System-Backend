@@ -10,4 +10,5 @@ public interface GuideService {
     ProjectResponse getProjectDetailsForGuide(String id);
     ProjectResponse approveProject(String id, ApprovalRequest request);
     ProjectResponse rejectProject(String id, ApprovalRequest request);
+    List<com.bit.ProjectApprovalSystem.dto.response.GuideWithProjectsResponse> getAllGuidesWithProjects();
 }

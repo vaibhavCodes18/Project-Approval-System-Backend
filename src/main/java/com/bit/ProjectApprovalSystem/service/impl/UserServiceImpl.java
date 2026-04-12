@@ -53,6 +53,8 @@ public class UserServiceImpl implements UserService {
         user.setName(registerRequest.getName());
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setDepartment(registerRequest.getDepartment());
+        user.setEnrollmentNo(null);
         user.setRole(UserRole.GUIDE);
         user.setUserStatus(UserStatus.ACTIVE);
 
@@ -63,6 +65,40 @@ public class UserServiceImpl implements UserService {
         response.setId(savedUser.getId().toString());
         response.setName(savedUser.getName());
         response.setEmail(savedUser.getEmail());
+        response.setDepartment(savedUser.getDepartment());
+        response.setRole(savedUser.getRole().name());
+        response.setStatus(savedUser.getUserStatus().name());
+
+        return response;
+    }
+
+    @Override
+    public UserResponse saveHod(CreateUserRequest registerRequest) {
+        if (userRepository.existsByEmail(registerRequest.getEmail())) {
+            throw new DuplicateResourceException(
+                    "A user with email '" + registerRequest.getEmail() + "' already exists");
+        }
+        if(userRepository.existsByRole(UserRole.HOD)){
+            throw new DuplicateResourceException("An hod already exists");
+        }
+
+        User user = new User();
+        user.setName(registerRequest.getName());
+        user.setEmail(registerRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setDepartment(registerRequest.getDepartment());
+        user.setEnrollmentNo(null);
+        user.setRole(UserRole.HOD);
+        user.setUserStatus(UserStatus.ACTIVE);
+
+        User savedUser = userRepository.save(user);
+
+        UserResponse response = new UserResponse();
+
+        response.setId(savedUser.getId().toString());
+        response.setName(savedUser.getName());
+        response.setEmail(savedUser.getEmail());
+        response.setDepartment(savedUser.getDepartment());
         response.setRole(savedUser.getRole().name());
         response.setStatus(savedUser.getUserStatus().name());
 

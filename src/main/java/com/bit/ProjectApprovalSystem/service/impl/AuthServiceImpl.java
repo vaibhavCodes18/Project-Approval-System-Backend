@@ -47,6 +47,8 @@ public class AuthServiceImpl implements AuthService {
         User user = new User();
         user.setName(registerRequest.getName());
         user.setEmail(registerRequest.getEmail());
+        user.setDepartment(registerRequest.getDepartment());
+        user.setEnrollmentNo(registerRequest.getEnrollmentNo());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setRole(UserRole.STUDENT);
         user.setUserStatus(UserStatus.ACTIVE);
@@ -59,6 +61,8 @@ public class AuthServiceImpl implements AuthService {
         response.setId(savedUser.getId().toString());
         response.setName(savedUser.getName());
         response.setEmail(savedUser.getEmail());
+        response.setDepartment(savedUser.getDepartment());
+        response.setEnrollmentNo(savedUser.getEnrollmentNo());
         response.setRole(savedUser.getRole().name());
         response.setStatus(savedUser.getUserStatus().name());
 
@@ -94,7 +98,10 @@ public class AuthServiceImpl implements AuthService {
         userResponse.setId(user.getId().toString());
         userResponse.setName(user.getName());
         userResponse.setEmail(user.getEmail());
+        userResponse.setDepartment(user.getDepartment());
+        userResponse.setEnrollmentNo(user.getEnrollmentNo());
         userResponse.setRole(user.getRole().name());
+
         userResponse.setStatus(user.getUserStatus().name());
 
         return AuthResponse.builder()
@@ -180,6 +187,8 @@ public class AuthServiceImpl implements AuthService {
                 .id(user.getId().toString())
                 .email(user.getEmail())
                 .name(user.getName())
+                .department(user.getDepartment())
+                .enrollmentNo(user.getEnrollmentNo())
                 .role(user.getRole().name())
                 .status(user.getUserStatus().name())
                 .build();

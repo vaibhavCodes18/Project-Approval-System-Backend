@@ -9,6 +9,8 @@ public interface UserService {
 
     UserResponse saveGuide(CreateUserRequest createUserRequest);
 
+    UserResponse saveHod(CreateUserRequest createUserRequest);
+
     UserResponse getUserById(String id);
 
     UserResponse updateUserStatus(String id, String status);
